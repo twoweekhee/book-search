@@ -1,7 +1,6 @@
 package com.twoweekhee.booksearch.application.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -43,7 +42,7 @@ public class BookService implements BookUseCase {
 			.currentPage(page)
 			.pageSize(size)
 			.totalPages(bookPage.getTotalPages())
-			.totalElements((int) bookPage.getTotalElements())
+			.totalElements(bookPage.getTotalElements())
 			.build();
 
 		return BookListResponse.builder()
