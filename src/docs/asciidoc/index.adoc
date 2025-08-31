@@ -1,0 +1,21 @@
+= Book Search API Documentation
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectanchors:
+
+== 개요
+
+Book Search API 문서입니다.
+
+== 도서 API
+
+=== 도서 조회 실패 - 존재하지 않는 ID
+
+operation::book-not-found[snippets='curl-request,http-request,http-response,response-fields']
+
+=== 도서 조회 성공
+
+operation::book-get[snippets='curl-request,http-request,http-response,response-fields']
