@@ -19,7 +19,7 @@ public class BookController {
 	private final BookUseCase bookUseCase;
 
 	@GetMapping("/{id}")
-	public ResponseEntity<BookResponse> getBook(@PathVariable Long id) {
+	public ResponseEntity<BookResponse> getBookDetail(@PathVariable Long id) {
 		return ResponseEntity.ok(bookUseCase.getBook(id));
 	}
 }
