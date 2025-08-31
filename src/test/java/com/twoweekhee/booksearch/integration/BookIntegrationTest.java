@@ -1,7 +1,6 @@
 package com.twoweekhee.booksearch.integration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 
@@ -17,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import com.twoweekhee.booksearch.entity.Book;
 import com.twoweekhee.booksearch.infrastructure.persistence.BookJpaRepository;
+import com.twoweekhee.booksearch.presentation.dto.BookListResponse;
 import com.twoweekhee.booksearch.presentation.dto.BookResponse;
 
 @ActiveProfiles("test")
@@ -69,7 +69,7 @@ class BookIntegrationTest {
 
     @Test
     @DisplayName("존재하지 않는 도서 ID로 조회 시 404를 반환한다 (통합 테스트)")
-    void getBookDetail_NotFound() throws Exception {
+    void getBookDetail_NotFound() {
         // given
         Long nonExistentId = 999L;
 
@@ -79,5 +79,76 @@ class BookIntegrationTest {
 
         // then
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("도서 목록 조회 통합테스트 - 성공")
+    void getBookList_Success() {
+        // setup
+        Book book1 = Book.builder()
+            .title("Everything about Go Lang")
+            .subtitle("version 3.0")
+            .author("twoweekhee")
+            .isbn("9781617291609")
+            .publisher("Lees House")
+            .published(LocalDate.of(2016, 3, 1))
+            .build();
+
+        Book book2 = Book.builder()
+            .title("Java Spring Boot")
+            .subtitle("Advanced Guide")
+            .author("developer")
+            .isbn("9781234567890")
+            .publisher("Tech House")
+            .published(LocalDate.of(2023, 5, 15))
+            .build();
+
+        bookJpaRepository.save(book1);
+        bookJpaRepository.save(book2);
+
+        // given & when
+        ResponseEntity<BookListResponse> response = restTemplate.getForEntity(
+            "/api/books?page=1&size=10", BookListResponse.class);
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getPageInfo());
+        assertNotNull(response.getBody().getBooks());
+        assertEquals(1, response.getBody().getPageInfo().getCurrentPage());
+        assertEquals(10, response.getBody().getPageInfo().getPageSize());
+        assertTrue(response.getBody().getBooks().size() >= 2);
+
+        // cleanup
+        bookJpaRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("페이지네이션 파라미터 기본값 적용 테스트")
+    void getBookList_DefaultParameters() {
+        // setup
+        Book book = Book.builder()
+            .title("Everything about Go Lang")
+            .subtitle("version 3.0")
+            .author("twoweekhee")
+            .isbn("9781617291609")
+            .publisher("Lees House")
+            .published(LocalDate.of(2016, 3, 1))
+            .build();
+
+        bookJpaRepository.save(book);
+
+        // given & when
+        ResponseEntity<BookListResponse> response = restTemplate.getForEntity(
+            "/api/books", BookListResponse.class);
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getPageInfo().getCurrentPage());
+        assertEquals(20, response.getBody().getPageInfo().getPageSize());
+
+        // cleanup
+        bookJpaRepository.deleteAll();
     }
 }
