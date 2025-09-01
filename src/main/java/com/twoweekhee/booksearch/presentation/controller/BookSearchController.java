@@ -12,7 +12,7 @@ import com.twoweekhee.booksearch.presentation.dto.BookSearchResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/books/search")
+@RequestMapping("/api/search/books")
 @RequiredArgsConstructor
 public class BookSearchController {
 
@@ -20,10 +20,10 @@ public class BookSearchController {
 
 	@GetMapping
 	public ResponseEntity<BookSearchResponse> searchBooks(
-		@RequestParam String keyword,
+		@RequestParam String query,
 		@RequestParam(defaultValue = "1") int page,
 		@RequestParam(defaultValue = "20") int size) {
 
-		return ResponseEntity.ok(bookSearchUseCase.searchBooks(keyword, page, size));
+		return ResponseEntity.ok(bookSearchUseCase.searchBooks(query, page, size));
 	}
 }

@@ -17,6 +17,7 @@ spring:
 
   # JPA 설정
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto:  validate
     properties:

@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import com.twoweekhee.booksearch.application.dto.SearchResult;
 import com.twoweekhee.booksearch.application.port.out.BookRepositoryPort;
 import com.twoweekhee.booksearch.entity.Book;
 import com.twoweekhee.booksearch.presentation.dto.BookSearchResponse;
@@ -32,13 +33,13 @@ class BookSearchServiceTest {
 	private BookSearchService bookSearchService;
 
 	@Test
-	@DisplayName("키워드로 도서를 검색한다")
-	void searchBooks_Success() {
+	@DisplayName("OR 연산자로 도서 검색")
+	void searchBooks_OrOperation() {
 		// given
-		String keyword = "java";
+		String query = "Go|JavaScript";
 		int page = 1;
-		int size = 20;
-		Pageable pageable = PageRequest.of(0, 20);
+		int size = 10;
+		Pageable pageable = PageRequest.of(0, 10);
 
 		Book book = Book.builder()
 			.id(1L)
@@ -50,109 +51,136 @@ class BookSearchServiceTest {
 			.published(LocalDate.of(2016, 3, 1))
 			.build();
 
-		Page<Book> bookPage = new PageImpl<>(List.of(book), pageable, 100);
+		Page<Book> bookPage = new PageImpl<>(List.of(book), pageable, 1);
+		SearchResult<Book> searchResult = SearchResult.from(bookPage, 50L, SearchMetadata.Strategy.OR_OPERATION);
 
-		given(bookRepositoryPort.findByKeyword(keyword, pageable)).willReturn(bookPage);
+		given(bookRepositoryPort.findByOrKeywords("Go", "JavaScript", pageable))
+			.willReturn(searchResult);
 
 		// when
-		BookSearchResponse result = bookSearchService.searchBooks(keyword, page, size);
+		BookSearchResponse response = bookSearchService.searchBooks(query, page, size);
 
 		// then
-		assertNotNull(result);
-		assertEquals(keyword, result.getSearchQuery());
-		assertEquals(1, result.getPageInfo().getCurrentPage());
-		assertEquals(20, result.getPageInfo().getPageSize());
-		assertEquals(5, result.getPageInfo().getTotalPages());
-		assertEquals(100L, result.getPageInfo().getTotalElements());
-		assertEquals(1, result.getBooks().size());
-		assertEquals("Everything about Go Lang", result.getBooks().get(0).getTitle());
-		assertEquals(SearchMetadata.Strategy.SIMPLE_SEARCH, result.getSearchMetadata().getStrategy());
-		assertTrue(result.getSearchMetadata().getExecutionTime() >= 0);
-
-		verify(bookRepositoryPort).findByKeyword(keyword, pageable);
+		assertEquals("Go|JavaScript", response.getSearchQuery());
+		assertEquals(1, response.getBooks().size());
+		assertEquals(SearchMetadata.Strategy.OR_OPERATION, response.getSearchMetadata().getStrategy());
+		assertEquals(50L, response.getSearchMetadata().getExecutionTime());
+		verify(bookRepositoryPort).findByOrKeywords("Go", "JavaScript", pageable);
 	}
 
 	@Test
-	@DisplayName("검색 결과가 없을 때 빈 리스트를 반환한다")
-	void searchBooks_EmptyResult() {
+	@DisplayName("NOT 연산자로 도서 검색")
+	void searchBooks_NotOperation() {
 		// given
-		String keyword = "nonexistent";
+		String query = "Programming-JavaScript";
 		int page = 1;
-		int size = 20;
-		Pageable pageable = PageRequest.of(0, 20);
-
-		Page<Book> emptyBookPage = new PageImpl<>(List.of(), pageable, 0);
-
-		given(bookRepositoryPort.findByKeyword(keyword, pageable)).willReturn(emptyBookPage);
-
-		// when
-		BookSearchResponse result = bookSearchService.searchBooks(keyword, page, size);
-
-		// then
-		assertNotNull(result);
-		assertEquals(keyword, result.getSearchQuery());
-		assertEquals(1, result.getPageInfo().getCurrentPage());
-		assertEquals(20, result.getPageInfo().getPageSize());
-		assertEquals(0, result.getPageInfo().getTotalPages());
-		assertEquals(0L, result.getPageInfo().getTotalElements());
-		assertTrue(result.getBooks().isEmpty());
-		assertEquals(SearchMetadata.Strategy.SIMPLE_SEARCH, result.getSearchMetadata().getStrategy());
-		assertTrue(result.getSearchMetadata().getExecutionTime() >= 0);
-
-		verify(bookRepositoryPort).findByKeyword(keyword, pageable);
-	}
-
-	@Test
-	@DisplayName("페이지 정보가 올바르게 변환된다")
-	void searchBooks_PageInfoConversion() {
-		// given
-		String keyword = "test";
-		int page = 2;
 		int size = 10;
-		Pageable pageable = PageRequest.of(1, 10);
+		Pageable pageable = PageRequest.of(0, 10);
 
 		Book book = Book.builder()
 			.id(1L)
-			.title("Test Book")
-			.author("Test Author")
-			.isbn("1234567890")
+			.title("Everything about Go Lang")
+			.subtitle("version 3.0")
+			.author("twoweekhee")
+			.isbn("9781617291609")
+			.publisher("Lees House")
+			.published(LocalDate.of(2016, 3, 1))
 			.build();
 
-		Page<Book> bookPage = new PageImpl<>(List.of(book), pageable, 25);
+		Page<Book> bookPage = new PageImpl<>(List.of(book), pageable, 1);
+		SearchResult<Book> searchResult = SearchResult.from(bookPage, 30L, SearchMetadata.Strategy.NOT_OPERATION);
 
-		given(bookRepositoryPort.findByKeyword(keyword, pageable)).willReturn(bookPage);
+		given(bookRepositoryPort.findByNotKeywords("Programming", "JavaScript", pageable))
+			.willReturn(searchResult);
 
 		// when
-		BookSearchResponse result = bookSearchService.searchBooks(keyword, page, size);
+		BookSearchResponse response = bookSearchService.searchBooks(query, page, size);
 
 		// then
-		assertEquals(2, result.getPageInfo().getCurrentPage());
-		assertEquals(10, result.getPageInfo().getPageSize());
-		assertEquals(3, result.getPageInfo().getTotalPages());
-		assertEquals(25L, result.getPageInfo().getTotalElements());
-
-		verify(bookRepositoryPort).findByKeyword(keyword, PageRequest.of(1, 10));
+		assertEquals("Programming-JavaScript", response.getSearchQuery());
+		assertEquals(1, response.getBooks().size());
+		assertEquals(SearchMetadata.Strategy.NOT_OPERATION, response.getSearchMetadata().getStrategy());
+		assertEquals(30L, response.getSearchMetadata().getExecutionTime());
+		verify(bookRepositoryPort).findByNotKeywords("Programming", "JavaScript", pageable);
 	}
 
 	@Test
-	@DisplayName("실행 시간이 측정된다")
-	void searchBooks_ExecutionTimeTracking() {
+	@DisplayName("단순 키워드로 도서 검색")
+	void searchBooks_SimpleSearch() {
 		// given
-		String keyword = "performance";
+		String query = "TDD";
 		int page = 1;
-		int size = 20;
-		Pageable pageable = PageRequest.of(0, 20);
+		int size = 10;
+		Pageable pageable = PageRequest.of(0, 10);
 
-		Page<Book> bookPage = new PageImpl<>(List.of(), pageable, 0);
+		Book book = Book.builder()
+			.id(1L)
+			.title("Everything about Go Lang")
+			.subtitle("version 3.0")
+			.author("twoweekhee")
+			.isbn("9781617291609")
+			.publisher("Lees House")
+			.published(LocalDate.of(2016, 3, 1))
+			.build();
 
-		given(bookRepositoryPort.findByKeyword(keyword, pageable)).willReturn(bookPage);
+		Page<Book> bookPage = new PageImpl<>(List.of(book), pageable, 1);
+		SearchResult<Book> searchResult = SearchResult.from(bookPage, 25L, SearchMetadata.Strategy.SIMPLE_SEARCH);
+
+		given(bookRepositoryPort.findByKeyword("TDD", pageable))
+			.willReturn(searchResult);
 
 		// when
-		BookSearchResponse result = bookSearchService.searchBooks(keyword, page, size);
+		BookSearchResponse response = bookSearchService.searchBooks(query, page, size);
 
 		// then
-		assertNotNull(result.getSearchMetadata());
-		assertTrue(result.getSearchMetadata().getExecutionTime() >= 0);
-		assertEquals(SearchMetadata.Strategy.SIMPLE_SEARCH, result.getSearchMetadata().getStrategy());
+		assertEquals("TDD", response.getSearchQuery());
+		assertEquals(1, response.getBooks().size());
+		assertEquals(SearchMetadata.Strategy.SIMPLE_SEARCH, response.getSearchMetadata().getStrategy());
+		assertEquals(25L, response.getSearchMetadata().getExecutionTime());
+		verify(bookRepositoryPort).findByKeyword("TDD", pageable);
+	}
+
+	@Test
+	@DisplayName("공백이 포함된 키워드 검색 시 trim 처리")
+	void searchBooks_TrimKeywords() {
+		// given
+		String query = " Go | JavaScript ";
+		int page = 1;
+		int size = 10;
+		Pageable pageable = PageRequest.of(0, 10);
+
+		Page<Book> bookPage = new PageImpl<>(List.of(), pageable, 0);
+		SearchResult<Book> searchResult = SearchResult.from(bookPage, 10L, SearchMetadata.Strategy.OR_OPERATION);
+
+		given(bookRepositoryPort.findByOrKeywords("Go", "JavaScript", pageable))
+			.willReturn(searchResult);
+
+		// when
+		bookSearchService.searchBooks(query, page, size);
+
+		// then
+		verify(bookRepositoryPort).findByOrKeywords("Go", "JavaScript", pageable);
+	}
+
+	@Test
+	@DisplayName("페이지 번호가 올바르게 변환됨 (1-based to 0-based)")
+	void searchBooks_PageConversion() {
+		// given
+		String query = "test";
+		int page = 3;
+		int size = 20;
+		Pageable expectedPageable = PageRequest.of(2, 20); // page-1
+
+		Page<Book> bookPage = new PageImpl<>(List.of(), expectedPageable, 0);
+		SearchResult<Book> searchResult = SearchResult.from(bookPage, 10L, SearchMetadata.Strategy.SIMPLE_SEARCH);
+
+		given(bookRepositoryPort.findByKeyword("test", expectedPageable))
+			.willReturn(searchResult);
+
+		// when
+		bookSearchService.searchBooks(query, page, size);
+
+		// then
+		verify(bookRepositoryPort).findByKeyword("test", expectedPageable);
 	}
 }

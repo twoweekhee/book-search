@@ -18,10 +18,10 @@ ALTER TABLE book ADD CONSTRAINT uk_book_isbn UNIQUE (isbn);
 -- 기존 데이터 업데이트 (FTS용 document 컬럼 채우기)
 UPDATE book
 SET document =
-        setweight(to_tsvector('simple', coalesce(title, '')), 'A') ||
-        setweight(to_tsvector('simple', coalesce(subtitle, '')), 'B') ||
-        setweight(to_tsvector('simple', coalesce(author, '')), 'C') ||
-        setweight(to_tsvector('simple', coalesce(publisher, '')), 'D');
+        setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('english', coalesce(subtitle, '')), 'B') ||
+        setweight(to_tsvector('english', coalesce(author, '')), 'C') ||
+        setweight(to_tsvector('english', coalesce(publisher, '')), 'D');
 
 -- GIN 인덱스 생성 (FTS 전용)
 CREATE INDEX IF NOT EXISTS book_document_idx ON book USING GIN (document);
@@ -30,10 +30,10 @@ CREATE INDEX IF NOT EXISTS book_document_idx ON book USING GIN (document);
 CREATE FUNCTION book_tsvector_trigger() RETURNS trigger AS $$
 begin
   new.document :=
-    setweight(to_tsvector('simple', coalesce(new.title, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(new.subtitle, '')), 'B') ||
-    setweight(to_tsvector('simple', coalesce(new.author, '')), 'C') ||
-    setweight(to_tsvector('simple', coalesce(new.publisher, '')), 'D');
+    setweight(to_tsvector('english', coalesce(new.title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(new.subtitle, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(new.author, '')), 'C') ||
+    setweight(to_tsvector('english', coalesce(new.publisher, '')), 'D');
 return new;
 end
 $$ LANGUAGE plpgsql;
