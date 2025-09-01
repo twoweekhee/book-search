@@ -27,4 +27,9 @@ public class BookRepositoryAdapter implements BookRepositoryPort {
 	public Page<Book> findAll(Pageable pageable) {
 		return bookJpaRepository.findAll(pageable);
 	}
+
+	@Override
+	public Page<Book> findByKeyword(String keyword, Pageable pageable) {
+		return bookJpaRepository.findByKeyword(keyword, pageable);
+	}
 }

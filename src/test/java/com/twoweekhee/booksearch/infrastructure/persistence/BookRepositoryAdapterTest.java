@@ -108,4 +108,63 @@ class BookRepositoryAdapterTest {
 
 		verify(bookJpaRepository).findAll(pageable);
 	}
+
+	@Test
+	@DisplayName("키워드로 도서를 검색한다")
+	void findByKeyword_Success() {
+		// given
+		String keyword = "java";
+		Pageable pageable = PageRequest.of(0, 20);
+
+		Book book = Book.builder()
+			.id(1L)
+			.title("Everything about java")
+			.subtitle("version 3.0")
+			.author("twoweekhee")
+			.isbn("9781617291609")
+			.publisher("Lees House")
+			.published(LocalDate.of(2016, 3, 1))
+			.build();
+
+		Page<Book> expectedPage = new PageImpl<>(List.of(book), pageable, 1);
+
+		given(bookJpaRepository.findByKeyword(keyword, pageable)).willReturn(expectedPage);
+
+		// when
+		Page<Book> result = bookRepositoryAdapter.findByKeyword(keyword, pageable);
+
+		// then
+		assertNotNull(result);
+		assertEquals(expectedPage, result);
+		assertEquals(1, result.getContent().size());
+		assertEquals("Everything about java", result.getContent().get(0).getTitle());
+		assertEquals(1L, result.getTotalElements());
+		assertEquals(1, result.getTotalPages());
+
+		verify(bookJpaRepository).findByKeyword(keyword, pageable);
+	}
+
+	@Test
+	@DisplayName("검색 결과가 없을 때 빈 페이지를 반환한다")
+	void findByKeyword_EmptyResult() {
+		// given
+		String keyword = "nonexistent";
+		Pageable pageable = PageRequest.of(0, 20);
+
+		Page<Book> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+		given(bookJpaRepository.findByKeyword(keyword, pageable)).willReturn(emptyPage);
+
+		// when
+		Page<Book> result = bookRepositoryAdapter.findByKeyword(keyword, pageable);
+
+		// then
+		assertNotNull(result);
+		assertEquals(emptyPage, result);
+		assertTrue(result.getContent().isEmpty());
+		assertEquals(0L, result.getTotalElements());
+		assertEquals(0, result.getTotalPages());
+
+		verify(bookJpaRepository).findByKeyword(keyword, pageable);
+	}
 }

@@ -8,4 +8,5 @@ import com.twoweekhee.booksearch.entity.Book;
 public interface BookRepositoryPort {
 	Book getBook(Long id);
 	Page<Book> findAll(Pageable pageable);
+	Page<Book> findByKeyword(String keyword, Pageable pageable);
 }
