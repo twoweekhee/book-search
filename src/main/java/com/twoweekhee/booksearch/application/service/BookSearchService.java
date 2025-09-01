@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.twoweekhee.booksearch.application.dto.SearchResult;
 import com.twoweekhee.booksearch.application.port.in.BookSearchUseCase;
 import com.twoweekhee.booksearch.application.port.out.BookRepositoryPort;
 import com.twoweekhee.booksearch.entity.Book;
@@ -26,18 +27,23 @@ public class BookSearchService implements BookSearchUseCase {
 	private final BookRepositoryPort bookRepositoryPort;
 
 	@Override
-	public BookSearchResponse searchBooks(String keyword, int page, int size) {
+	public BookSearchResponse searchBooks(String query, int page, int size) {
 
 		Pageable pageable = PageRequest.of(page - 1, size);
+		SearchResult<Book> searchResult;
 
-		Instant startTime = Instant.now();
+		if (query.contains("|")) {
+			String[] keywords = query.split("\\|");
+			searchResult = bookRepositoryPort.findByOrKeywords(keywords[0].trim(), keywords[1].trim(), pageable);
+		} else if (query.contains("-")) {
+			String[] keywords = query.split("-");
+			searchResult = bookRepositoryPort.findByNotKeywords(keywords[0].trim(), keywords[1].trim(), pageable);
+		} else {
+			searchResult = bookRepositoryPort.findByKeyword(query, pageable);
+		}
 
-		Page<Book> bookPage = bookRepositoryPort.findByKeyword(keyword, pageable);
+		PageInfo pageInfo = PageInfo.from(searchResult.getPage(), page, size);
 
-		long executionTime = Duration.between(startTime, Instant.now()).toMillis();
-
-		PageInfo pageInfo = PageInfo.from(bookPage, page, size);
-
-		return BookSearchResponse.from(keyword, bookPage, pageInfo, SearchMetadata.Strategy.SIMPLE_SEARCH, executionTime);
+		return BookSearchResponse.from(query, searchResult.getPage(), pageInfo, searchResult.getStrategy(), searchResult.getExecutionTimeMs());
 	}
 }

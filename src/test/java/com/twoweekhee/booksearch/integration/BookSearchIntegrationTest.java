@@ -55,13 +55,11 @@ class BookSearchIntegrationTest extends BaseIntegrationTest {
 			.build();
 
 		bookJpaRepository.save(book1);
-		Book save = bookJpaRepository.save(book2);
-
-		System.out.println("save.getDocument() : " + save.getDocument());
+		bookJpaRepository.save(book2);
 
 		// given & when
 		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
-			"/api/books/search?keyword=Go&page=1&size=20", BookSearchResponse.class);
+			"/api/search/books?query=Go&page=1&size=20", BookSearchResponse.class);
 
 		// then
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -92,7 +90,7 @@ class BookSearchIntegrationTest extends BaseIntegrationTest {
 
 		// given & when
 		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
-			"/api/books/search?keyword=Go", BookSearchResponse.class);
+			"/api/search/books?query=Go", BookSearchResponse.class);
 
 		// then
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -109,7 +107,7 @@ class BookSearchIntegrationTest extends BaseIntegrationTest {
 	void searchBooks_EmptyResult() {
 		// given & when
 		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
-			"/api/books/search?keyword=NonExistentKeyword", BookSearchResponse.class);
+			"/api/search/books?query=NonExistentKeyword", BookSearchResponse.class);
 
 		// then
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -137,7 +135,7 @@ class BookSearchIntegrationTest extends BaseIntegrationTest {
 
 		// given & when
 		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
-			"/api/books/search?keyword=Java&page=2&size=10", BookSearchResponse.class);
+			"/api/search/books?query=Java&page=2&size=10", BookSearchResponse.class);
 
 		// then
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -154,12 +152,77 @@ class BookSearchIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	@DisplayName("필수 파라미터 누락 시 400 에러 반환")
-	void searchBooks_MissingKeyword() {
+	void searchBooks_MissingQuery() {
 		// given & when
 		ResponseEntity<String> response = restTemplate.getForEntity(
-			"/api/books/search?page=1&size=20", String.class);
+			"/api/search/books?page=1&size=20", String.class);
 
 		// then
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
+
+	@Test
+	@DisplayName("OR 연산자 검색 통합테스트")
+	void searchBooks_OrOperation() {
+		// setup
+		Book book1 = Book.builder()
+			.title("Go Programming")
+			.author("Author1")
+			.isbn("9781111111111")
+			.build();
+
+		Book book2 = Book.builder()
+			.title("JavaScript Guide")
+			.author("Author2")
+			.isbn("9782222222222")
+			.build();
+
+		bookJpaRepository.save(book1);
+		bookJpaRepository.save(book2);
+
+		// given & when
+		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
+			"/api/search/books?query=Go|JavaScript", BookSearchResponse.class);
+
+		// then
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		BookSearchResponse searchResponse = response.getBody();
+		assertEquals("Go|JavaScript", searchResponse.getSearchQuery());
+		assertEquals(2, searchResponse.getBooks().size());
+	}
+
+	@Test
+	@DisplayName("NOT 연산자 검색 통합테스트")
+	void searchBooks_NotOperation() {
+		// setup
+		Book book1 = Book.builder()
+			.title("Programming with Go")
+			.author("Author1")
+			.isbn("9781111111111")
+			.build();
+
+		Book book2 = Book.builder()
+			.title("Programming with JavaScript")
+			.author("Author2")
+			.isbn("9782222222222")
+			.build();
+
+		bookJpaRepository.save(book1);
+		bookJpaRepository.save(book2);
+
+		// given & when
+		ResponseEntity<BookSearchResponse> response = restTemplate.getForEntity(
+			"/api/search/books?query=Programming-JavaScript", BookSearchResponse.class);
+
+		// then
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response.getBody());
+
+		BookSearchResponse searchResponse = response.getBody();
+		assertEquals("Programming-JavaScript", searchResponse.getSearchQuery());
+		assertEquals(1, searchResponse.getBooks().size());
+		assertEquals("Programming with Go", searchResponse.getBooks().get(0).getTitle());
 	}
 }

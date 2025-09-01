@@ -16,4 +16,22 @@ public interface BookJpaRepository extends JpaRepository<Book, Long> {
 		nativeQuery = true
 	)
 	Page<Book> findByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+	@Query(
+		value = "SELECT * FROM book WHERE document @@ to_tsquery(:keyword1 || ' | ' || :keyword2)",
+		countQuery = "SELECT count(*) FROM book WHERE document @@ to_tsquery(:keyword1 || ' | ' || :keyword2)",
+		nativeQuery = true
+	)
+	Page<Book> findByOrKeywords(@Param("keyword1") String keyword1,
+		@Param("keyword2") String keyword2,
+		Pageable pageable);
+
+	@Query(
+		value = "SELECT * FROM book WHERE document @@ to_tsquery(:keyword1 || ' & ! ' || :keyword2)",
+		countQuery = "SELECT count(*) FROM book WHERE document @@ to_tsquery(:keyword1 || ' & ! ' || :keyword2)",
+		nativeQuery = true
+	)
+	Page<Book> findByNotKeywords(@Param("keyword1") String keyword1,
+		@Param("keyword2") String keyword2,
+		Pageable pageable);
 }

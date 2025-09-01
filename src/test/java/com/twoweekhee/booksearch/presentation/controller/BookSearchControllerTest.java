@@ -42,7 +42,7 @@ class BookSearchControllerTest {
 	@DisplayName("키워드로 도서를 검색한다")
 	void searchBooks_Success() throws Exception {
 		// given
-		String keyword = "tdd";
+		String query = "tdd";
 		int page = 1;
 		int size = 20;
 
@@ -69,17 +69,17 @@ class BookSearchControllerTest {
 			.build();
 
 		BookSearchResponse searchResponse = BookSearchResponse.builder()
-			.searchQuery(keyword)
+			.searchQuery(query)
 			.pageInfo(pageInfo)
 			.books(List.of(bookResponse))
 			.searchMetadata(searchMetadata)
 			.build();
 
-		given(bookSearchUseCase.searchBooks(keyword, page, size)).willReturn(searchResponse);
+		given(bookSearchUseCase.searchBooks(query, page, size)).willReturn(searchResponse);
 
 		// when & then
-		mockMvc.perform(get("/api/books/search")
-				.param("keyword", keyword)
+		mockMvc.perform(get("/api/search/books")
+				.param("query", query)
 				.param("page", String.valueOf(page))
 				.param("size", String.valueOf(size))
 				.accept(MediaType.APPLICATION_JSON))
@@ -102,7 +102,7 @@ class BookSearchControllerTest {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				queryParameters(
-					parameterWithName("keyword").description("검색 키워드"),
+					parameterWithName("query").description("검색 쿼리"),
 					parameterWithName("page").description("페이지 번호 (기본값: 1)").optional(),
 					parameterWithName("size").description("페이지 크기 (기본값: 20)").optional()
 				),
@@ -129,7 +129,7 @@ class BookSearchControllerTest {
 	@DisplayName("키워드로 도서를 검색한다 - page 기본값으로")
 	void searchBooks_WithDefaults() throws Exception {
 		// given
-		String keyword = "java";
+		String query = "java";
 
 		BookResponse bookResponse = BookResponse.builder()
 			.id(1L)
@@ -154,22 +154,22 @@ class BookSearchControllerTest {
 			.build();
 
 		BookSearchResponse searchResponse = BookSearchResponse.builder()
-			.searchQuery(keyword)
+			.searchQuery(query)
 			.pageInfo(pageInfo)
 			.books(List.of(bookResponse))
 			.searchMetadata(searchMetadata)
 			.build();
 
-		given(bookSearchUseCase.searchBooks(keyword, 1, 20)).willReturn(searchResponse);
+		given(bookSearchUseCase.searchBooks(query, 1, 20)).willReturn(searchResponse);
 
 		// when & then
-		mockMvc.perform(get("/api/books/search")
-				.param("keyword", keyword)
+		mockMvc.perform(get("/api/search/books")
+				.param("query", query)
 				.accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.pageInfo.currentPage").value(1))
 			.andExpect(jsonPath("$.pageInfo.pageSize").value(20));
 
-		verify(bookSearchUseCase).searchBooks(keyword, 1, 20);
+		verify(bookSearchUseCase).searchBooks(query, 1, 20);
 	}
 }
