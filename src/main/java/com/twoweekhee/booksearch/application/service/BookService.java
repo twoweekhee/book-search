@@ -1,7 +1,5 @@
 package com.twoweekhee.booksearch.application.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,20 +32,8 @@ public class BookService implements BookUseCase {
 		Pageable pageable = PageRequest.of(page - 1, size);
 		Page<Book> bookPage = bookRepositoryPort.findAll(pageable);
 
-		List<BookResponse> books = bookPage.getContent().stream()
-			.map(BookResponse::from)
-			.toList();
+		PageInfo pageInfo = PageInfo.from(bookPage, page, size);
 
-		PageInfo pageInfo = PageInfo.builder()
-			.currentPage(page)
-			.pageSize(size)
-			.totalPages(bookPage.getTotalPages())
-			.totalElements(bookPage.getTotalElements())
-			.build();
-
-		return BookListResponse.builder()
-			.pageInfo(pageInfo)
-			.books(books)
-			.build();
+		return BookListResponse.from(bookPage, pageInfo);
 	}
 }

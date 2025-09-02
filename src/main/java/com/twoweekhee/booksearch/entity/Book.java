@@ -47,4 +47,7 @@ public class Book {
 
 	@Column(name = "published")
 	private LocalDate published;
+
+	@Column(columnDefinition = "tsvector", insertable = false, updatable = false)
+	private String document;
 }
