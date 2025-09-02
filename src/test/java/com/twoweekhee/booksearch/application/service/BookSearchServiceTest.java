@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.twoweekhee.booksearch.application.dto.SearchResult;
 import com.twoweekhee.booksearch.application.port.out.BookRepositoryPort;
+import com.twoweekhee.booksearch.application.port.out.KeywordLogRepositoryPort;
 import com.twoweekhee.booksearch.entity.Book;
 import com.twoweekhee.booksearch.presentation.dto.BookSearchResponse;
 import com.twoweekhee.booksearch.presentation.dto.SearchMetadata;
@@ -28,6 +29,9 @@ class BookSearchServiceTest {
 
 	@Mock
 	private BookRepositoryPort bookRepositoryPort;
+
+	@Mock
+	private KeywordLogRepositoryPort keywordLogRepository;
 
 	@InjectMocks
 	private BookSearchService bookSearchService;
@@ -65,6 +69,8 @@ class BookSearchServiceTest {
 		assertEquals(1, response.getBooks().size());
 		assertEquals(SearchMetadata.Strategy.OR_OPERATION, response.getSearchMetadata().getStrategy());
 		assertEquals(50L, response.getSearchMetadata().getExecutionTime());
+		verify(keywordLogRepository).saveKeyword("Go");
+		verify(keywordLogRepository).saveKeyword("JavaScript");
 		verify(bookRepositoryPort).findByOrKeywords("Go", "JavaScript", pageable);
 	}
 
@@ -101,6 +107,7 @@ class BookSearchServiceTest {
 		assertEquals(1, response.getBooks().size());
 		assertEquals(SearchMetadata.Strategy.NOT_OPERATION, response.getSearchMetadata().getStrategy());
 		assertEquals(30L, response.getSearchMetadata().getExecutionTime());
+		verify(keywordLogRepository).saveKeyword("Programming");
 		verify(bookRepositoryPort).findByNotKeywords("Programming", "JavaScript", pageable);
 	}
 
@@ -137,6 +144,7 @@ class BookSearchServiceTest {
 		assertEquals(1, response.getBooks().size());
 		assertEquals(SearchMetadata.Strategy.SIMPLE_SEARCH, response.getSearchMetadata().getStrategy());
 		assertEquals(25L, response.getSearchMetadata().getExecutionTime());
+		verify(keywordLogRepository).saveKeyword("TDD");
 		verify(bookRepositoryPort).findByKeyword("TDD", pageable);
 	}
 
@@ -159,6 +167,8 @@ class BookSearchServiceTest {
 		bookSearchService.searchBooks(query, page, size);
 
 		// then
+		verify(keywordLogRepository).saveKeyword("Go");
+		verify(keywordLogRepository).saveKeyword("JavaScript");
 		verify(bookRepositoryPort).findByOrKeywords("Go", "JavaScript", pageable);
 	}
 
@@ -169,7 +179,7 @@ class BookSearchServiceTest {
 		String query = "test";
 		int page = 3;
 		int size = 20;
-		Pageable expectedPageable = PageRequest.of(2, 20); // page-1
+		Pageable expectedPageable = PageRequest.of(2, 20);
 
 		Page<Book> bookPage = new PageImpl<>(List.of(), expectedPageable, 0);
 		SearchResult<Book> searchResult = SearchResult.from(bookPage, 10L, SearchMetadata.Strategy.SIMPLE_SEARCH);
@@ -181,6 +191,7 @@ class BookSearchServiceTest {
 		bookSearchService.searchBooks(query, page, size);
 
 		// then
+		verify(keywordLogRepository).saveKeyword("test");
 		verify(bookRepositoryPort).findByKeyword("test", expectedPageable);
 	}
 }
