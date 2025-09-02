@@ -1,0 +1,14 @@
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  h2:
+    console:
+      enabled: false
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    com.twoweekhee.booksearch: DEBUG

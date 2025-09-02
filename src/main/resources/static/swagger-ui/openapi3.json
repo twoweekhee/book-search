@@ -1,0 +1,16 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Book Search API",
+    "description" : "도서 검색 시스템 API",
+    "version" : "1.0.0"
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080"
+  } ],
+  "tags" : [ ],
+  "paths" : { },
+  "components" : {
+    "schemas" : { }
+  }
+}
