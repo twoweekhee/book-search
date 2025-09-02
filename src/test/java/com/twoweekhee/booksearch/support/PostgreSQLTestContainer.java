@@ -14,7 +14,7 @@ public final class PostgreSQLTestContainer {
 						.withDatabaseName("testdb")
 						.withUsername("test")
 						.withPassword("test")
-						.withInitScript("db/schema.sql")
+						.withInitScript("db/01-schema.sql")
 						.withReuse(true);
 
 					container.start();

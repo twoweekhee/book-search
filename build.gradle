@@ -28,6 +28,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     // Lombok
     compileOnly 'org.projectlombok:lombok'
@@ -55,6 +56,7 @@ ext {
 test {
     outputs.dir snippetsDir
     useJUnitPlatform()
+    exclude '**/integration/**'
 }
 
 asciidoctor {
