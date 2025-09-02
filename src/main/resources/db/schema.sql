@@ -1,4 +1,4 @@
--- Book 테이블 생성
+-- book 테이블 생성
 CREATE TABLE IF NOT EXISTS book (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(500) NOT NULL,
@@ -41,3 +41,12 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER book_tsvector_update
     BEFORE INSERT OR UPDATE ON book
                          FOR EACH ROW EXECUTE FUNCTION book_tsvector_trigger();
+
+-- keyword_log 테이블 생성
+CREATE TABLE keyword_log (
+     id BIGSERIAL PRIMARY KEY,
+     keyword VARCHAR(255) NOT NULL,
+     searched_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_keyword_log_searched_at ON keyword_log(searched_at);
