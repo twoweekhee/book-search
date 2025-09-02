@@ -29,66 +29,17 @@ BookSearch는 Spring Boot를 활용하여 구현된 RESTful API 서비스입니�
 | **Spring Boot 3.x** | • 풍부한 생태계와 커뮤니티<br/>• 자동 설정을 통한 개발 생산성 향상<br/>• 검증된 안정성 |
 | **Gradle** | • 유연한 DSL 지원<br/>• 빠른 빌드 성능<br/>• 강력한 의존성 관리 |
 | **JPA** | • 객체 지향적 데이터베이스 접근<br/>• 반복적인 SQL 코드 감소<br/>• 생산성 향상 |
-| **PostgreSQL** | • 뛰어난 데이터 무결성<br/>• 고급 기능 지원<br/>• 확장성과 안정성 |
-| **Docker** | • 일관된 개발 환경 보장<br/>• 배포 환경 예측 가능성 향상<br/>• 팀 협업 효율성 |
+| **PostgreSQL** | • 검색에 특화된 함수 지원 |
+| **Docker** | • 일관된 개발 환경 보장<br/>• 배포 환경 예측 가능성 향상<br/> |
 
 ## 📡 API 명세
 
 > url | http://localhost:8080/docs/index.html
 
-### 도서 목록 조회
-```http
-GET /api/books
-```
+## 🗄️ 엔티티 모델
 
-**Query Parameters:**
-- `page` (optional): 페이지 번호 (기본값: 1)
-- `size` (optional): 페이지당 항목 수 (기본값: 20)
-
-**Response:**
-```json
-{
-  "content": [
-    {
-      "id": 1,
-      "title": "도서 제목",
-      "subtitle": "부제목",
-      "author": "저자명",
-      "isbn": "978-89-xxx-xxxx-x",
-      "publisher": "출판사",
-      "published": "2024-01-15"
-    }
-  ],
-  "pageable": {
-    "page": 1,
-    "size": 20
-  },
-  "totalElements": 100
-}
-```
-
-### 도서 상세 조회
-```http
-GET /api/books/{id}
-```
-
-**Path Parameters:**
-- `id`: 도서 식별자 (Long)
-
-**Response:**
-```json
-{
-  "id": 1,
-  "title": "도서 제목",
-  "subtitle": "부제목",
-  "author": "저자명",
-  "isbn": "978-89-xxx-xxxx-x",
-  "publisher": "출판사",
-  "published": "2024-01-15"
-}
-```
-
-## 🗄️ 데이터 모델
+책을 조회 하고 검색할 수 있도록 책 엔티티와 검색어를 저장하여 인기 검색어를 확인할 수 있도록 하는 키워드로그 엔티티를 생성
+키워드로그 엔티티의 경우 키워드와 검색 시간을 함께 저장하여 언제 검색하였는 지 체킹하여 인기검색어에 최신 검색어가 반영될 수 있도록 함.
 
 ### Book Entity
 
@@ -102,6 +53,15 @@ GET /api/books/{id}
 | `publisher` | `String` | Max 100 | 출판사명 |
 | `published` | `LocalDate` | | 출판일 |
 
+### KeywordLog Entity
+
+| 필드           | 타입              | 제약조건                                   | 설명         |
+| ------------ | --------------- | -------------------------------------- | ---------- |
+| `id`         | `Long`          | Primary Key, Auto Increment            | 키워드 로그 식별자 |
+| `keyword`    | `String`        | Not Null                               | 검색된 키워드    |
+| `searchedAt` | `LocalDateTime` | Not Null, 자동 생성 (`@CreationTimestamp`) | 검색 시각      |
+
+
 ## 🚀 빠른 시작
 
 ### 사전 요구사항
@@ -113,7 +73,7 @@ GET /api/books/{id}
 
 1. **저장소 클론**
    ```bash
-   git clone <repository-url>
+   git clone [<repository-url>](https://github.com/twoweekhee/book-search)
    cd booksearch
    ```
 
@@ -170,6 +130,10 @@ src/
 
 ### 문제 해결 중 고민 과정
 
+많은 고민과 선택의 연속이었지만 복합쿼리 검색과 키워드 검색 api를 
+하나로 합칠 지 두개로 쪼갤 지 고민을 제일 오래 했던 것 같습니다.
+<br>
+
 **고민했던 선택지:**
 - 🔀 복합 쿼리와 키워드 검색을 별도 API로 분리
 - 🎯 단일 통합 검색 API 제공 (최종 선택)
@@ -184,7 +148,11 @@ src/
 | **유지보수성** | 검색 로직 수정 시 한 곳만 변경하면 되어 효율적 |
 | **API 일관성** | '검색'이라는 단일 도메인 내에서 통합된 인터페이스 |
 
+### 과제 하면서 느낀점
 
+과제 하면서 또 많이 배웠던 것 같습니다. 
+어떤 니즈를 통해 해당 기능이 필요한지 보통은 기획자와 이야기를 충분히 나누고 개발을 하게 되는 데
+서비스에 대해서 문서로 보여지는 게 다다 보니까 최대한 문서에서 원하는 기능만 구현을 하려고 노력을 많이 했습니다.
 ---
 
 **📧 Contact**: [myjjoo4758@gmail.com](mailto:myjjoo4758@gmail.com)  
