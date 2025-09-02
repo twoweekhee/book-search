@@ -73,7 +73,7 @@ BookSearch는 Spring Boot를 활용하여 구현된 RESTful API 서비스입니�
 
 1. **저장소 클론**
    ```bash
-   git clone [<repository-url>](https://github.com/twoweekhee/book-search)
+   git clone https://github.com/twoweekhee/book-search
    cd booksearch
    ```
 
@@ -148,11 +148,10 @@ src/
 | **유지보수성** | 검색 로직 수정 시 한 곳만 변경하면 되어 효율적 |
 | **API 일관성** | '검색'이라는 단일 도메인 내에서 통합된 인터페이스 |
 
-### 과제 하면서 느낀점
+**과제 하면서 느낀점:**
 
 과제 하면서 또 많이 배웠던 것 같습니다. 
 어떤 니즈를 통해 해당 기능이 필요한지 보통은 기획자와 이야기를 충분히 나누고 개발을 하게 되는 데
 서비스에 대해서 문서로 보여지는 게 다다 보니까 최대한 문서에서 원하는 기능만 구현을 하려고 노력을 많이 했습니다.
----
 
 **📧 Contact**: [myjjoo4758@gmail.com](mailto:myjjoo4758@gmail.com)  
