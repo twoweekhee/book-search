@@ -87,34 +87,41 @@ BookSearch는 Spring Boot를 활용하여 구현된 RESTful API 서비스입니�
    ```
 
 ## 📁 프로젝트 구조
-
 ```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/example/booksearch/
-│   │       ├── BookSearchApplication.java
-│   │       ├── controller/
-│   │       │   └── BookController.java
-│   │       ├── service/
-│   │       │   └── BookService.java
-│   │       ├── repository/
-│   │       │   └── BookRepository.java
-│   │       ├── entity/
-│   │       │   └── Book.java
-│   │       └── dto/
-│   │           ├── BookResponse.java
-│   │           └── BookListResponse.java
-│   └── resources/
-│       ├── application.yml
-│       └── db/migration/
-│           └── V1__Create_book_table.sql
-└── test/
-    └── java/
-        └── com/example/booksearch/
-            ├── controller/
+📦 src/
+├── 📂 main/
+│   ├── ☕ java/
+│   │   └── 📦 com/example/booksearch/
+│   │       ├── 🚀 BookSearchApplication.java
+│   │       ├── 🎨 presentation/
+│   │       │   ├── 🎯 controller/
+│   │       │   │   └── BookController.java
+│   │       │   └── 📋 dto/
+│   │       │       ├── Request.java
+│   │       │       └── Response.java
+│   │       ├── ⚡ application/
+│   │       │   ├── 🔧 service/
+│   │       │   │   └── BookService.java
+│   │       │   └── 🔌 port/
+│   │       │       ├── 📥 in/
+│   │       │       └── 📤 out/
+│   │       ├── 🏗️ infrastructure/
+│   │       │   └── 💾 persistence/
+│   │       │       ├── BookJpaRepository.java
+│   │       │       └── BookRepositoryAdapter.java
+│   │       └── 📚 entity/
+│   │           └── Book.java
+│   └── 📋 resources/
+│       ├── ⚙️ application.yml
+│       └── 🗃️ db/
+│           ├── 01-schema.sql
+│           └── 02-data.sql
+└── 🧪 test/
+    └── ☕ java/
+        └── 📦 com/example/booksearch/
+            ├── 🎯 controller/
             │   └── BookControllerTest.java
-            └── service/
+            └── 🔧 service/
                 └── BookServiceTest.java
 ```
 
